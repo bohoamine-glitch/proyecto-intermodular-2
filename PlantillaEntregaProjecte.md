@@ -88,16 +88,90 @@
 
 - Estimació de **punts** de les User Stories (28 puntos)
 
-# 3. Estructura Git 
-- Diagrama de l'estructura de branques (Gitflow, Trunk-based, etc.) amb **mermaid**
-- Justificació de l'estructura triada
-- Convenció de noms de branques i commits
 
-!!! TIP BONUS POINTS
-    **BONUS**:
-    - Implementar git hooks (pre-commit, commit-msg) per a normalitzar missatges de commit.
-    - Implementar `.gitignore` adequat al stack.
-    - Ús de Conventional Commits.
+# 3. Estructura Git
+
+Para el control de versiones y el trabajo colaborativo utilizaremos una estructura basada en **Git Flow**, adaptada a las necesidades del proyecto.
+
+## 3.1. Estructura de ramas
+
+Trabajaremos con tres tipos de ramas:
+
+- **`main`:** contendrá las versiones estables y probadas de la aplicación.
+- **`dev`:** será la rama de integración donde se combinarán las funcionalidades desarrolladas.
+- **`feature/*`:** se utilizará para desarrollar cada funcionalidad de forma independiente.
+
+Las ramas de funcionalidad se crearán a partir de `dev` y se integrarán mediante Pull Requests una vez revisados los cambios. Cuando la versión integrada haya sido probada, se realizará un Pull Request de `dev` hacia `main`.
+
+Esta estructura permitirá organizar el desarrollo, reducir conflictos, facilitar la revisión del código y mantener una versión estable de la aplicación.
+
+Utilizaremos una convención de nombres para las ramas, como `feature/login`, `feature/task-crud` y `feature/task-status`.
+
+## 3.2. Convención de commits: Conventional Commits
+
+Utilizaremos **Conventional Commits** para normalizar los mensajes de los commits y facilitar la identificación de los cambios realizados durante el desarrollo.
+
+Seguiremos el formato:
+
+`tipo: descripción breve del cambio`
+
+Los principales tipos de commit serán:
+
+- **`feat`:** añadir una nueva funcionalidad.
+- **`fix`:** corregir un error.
+- **`docs`:** realizar cambios en la documentación.
+- **`style`:** modificar el formato del código sin cambiar su funcionamiento.
+- **`refactor`:** reorganizar el código sin cambiar su comportamiento.
+- **`test`:** añadir o modificar pruebas.
+- **`chore`:** realizar tareas de mantenimiento o configuración.
+
+Ejemplos aplicados al proyecto:
+
+- `feat: add student login`
+- `feat: implement task assignment`
+- `fix: validate user credentials`
+- `docs: document git workflow`
+- `test: add login validation tests`
+- `chore: configure git hooks`
+
+Esta convención mejorará la claridad del historial y facilitará el trabajo colaborativo.
+
+## 3.3. Implementación de Git Hooks
+
+Implementaremos Git Hooks para automatizar determinadas comprobaciones antes de aceptar los commits. De esta forma, reduciremos errores y mantendremos unas normas comunes entre los desarrolladores.
+
+Utilizaremos los siguientes hooks:
+
+- **`pre-commit`:** se ejecutará antes de crear un commit y permitirá comprobar aspectos básicos del código, como errores de sintaxis en PHP, o ejecutar comprobaciones disponibles en el proyecto.
+- **`commit-msg`:** se ejecutará para validar que el mensaje del commit respeta el formato establecido por Conventional Commits.
+
+Por ejemplo, se aceptarán mensajes como `feat: add student login` y se rechazarán mensajes que no sigan la convención definida.
+
+Estos hooks ayudarán a mantener la calidad del código y la coherencia del historial de cambios.
+
+## 3.4. Configuración del archivo .gitignore
+
+Crearemos un archivo `.gitignore` adaptado a las tecnologías utilizadas: HTML, CSS, JavaScript, PHP y PostgreSQL.
+
+Este archivo evitará que se suban al repositorio archivos innecesarios, temporales o que puedan comprometer la seguridad del proyecto.
+
+Se excluirán, entre otros:
+
+- Archivos y carpetas del editor, como configuraciones locales de Visual Studio Code.
+- Archivos temporales, logs y cachés.
+- Dependencias generadas, como `node_modules/` o `vendor/`, si se utilizan.
+- Archivos de configuración local que contengan credenciales, como `.env`.
+- Copias de seguridad y archivos temporales de la base de datos.
+
+El archivo `.gitignore` permitirá mantener un repositorio limpio, organizado y seguro. Los archivos necesarios para configurar el proyecto, como un `.env.example` sin contraseñas reales, sí se podrán compartir.
+
+## 3.5. Justificación de la estructura elegida
+
+La estructura seleccionada permite desarrollar las funcionalidades de forma independiente y combinarlas de manera controlada. El uso de ramas `feature/*` evita trabajar directamente sobre las ramas principales, mientras que `dev` permite comprobar la integración antes de publicar una versión estable en `main`.
+
+Además, Conventional Commits, Git Hooks y `.gitignore` ayudarán a estandarizar el trabajo del equipo, automatizar comprobaciones y evitar la inclusión de archivos innecesarios o información sensible.
+
+En conjunto, estas prácticas mejorarán la organización, la trazabilidad de los cambios, la seguridad y la calidad del proyecto.
 
 # 4. Tecnologies
 ## 4.1 Stack tecnológico elegido
@@ -161,15 +235,68 @@ flowchart TD
 - Funcionalitats pendents / fora d'abast (si n'hi ha)
 
 # 6. Diagrames
-- Diagrama de Dades (ER)
-- Diagrama de Classes (si aplica)
-- Diagrama de Seqüència d'almenys 1 procés
 
+## 6.1. Diagrama de datos (ER)
 
-# 9. Conclusions
-- Dificultats trobades
-- Aprenentatges
-- Possibles millores futures
+La base de datos de nuestra aplicación estará formada por cuatro tablas: `profesores`, `alumnos`, `tareas` y `asignaciones`. Estas tablas permitirán gestionar los usuarios, crear tareas y controlar el progreso de los alumnos.
+
+```mermaid
+erDiagram
+    PROFESORES ||--o{ TAREAS : crea
+    TAREAS ||--|{ ASIGNACIONES : tiene
+    ALUMNOS ||--o{ ASIGNACIONES : realiza
+
+    PROFESORES {
+        int id_profesor PK
+        varchar nombre
+        varchar email UK
+        varchar password_hash
+    }
+
+    ALUMNOS {
+        int id_alumno PK
+        varchar nombre
+        varchar email UK
+        varchar password_hash
+    }
+
+    TAREAS {
+        int id_tarea PK
+        varchar titulo
+        text descripcion
+        timestamp fecha_inicio
+        timestamp fecha_entrega
+        int id_profesor FK
+    }
+
+    ASIGNACIONES {
+        int id_asignacion PK
+        int id_tarea FK
+        int id_alumno FK
+        varchar estado
+    }
+```
+
+### Explicación del diagrama
+
+- **Profesores:** guarda el nombre, el correo electrónico y la contraseña protegida de cada profesor. Los profesores pueden crear tareas.
+- **Alumnos:** guarda el nombre, el correo electrónico y la contraseña protegida de cada alumno. Los alumnos pueden consultar y realizar las tareas que tienen asignadas.
+- **Tareas:** almacena el título, la descripción y las fechas de cada tarea, además del profesor que la ha creado.
+- **Asignaciones:** relaciona las tareas con los alumnos y guarda el estado de cada tarea: pendiente, en proceso o completada.
+
+### Relaciones entre las tablas
+
+- Un profesor puede crear varias tareas.
+- Una tarea puede asignarse a varios alumnos.
+- Un alumno puede tener varias tareas asignadas.
+- Cada asignación pertenece a una tarea y a un alumno, y guarda su estado individual.
+
+### Justificación del diseño
+
+Hemos elegido estas cuatro tablas porque permiten cubrir las funcionalidades principales del MVP sin complicar demasiado la base de datos. Separar profesores y alumnos facilita distinguir sus datos y sus funciones. La tabla `asignaciones` permite que cada alumno tenga su propio estado para una misma tarea.
+
+Las contraseñas se almacenarán mediante un hash seguro, utilizando las funciones `password_hash()` y `password_verify()` de PHP, para evitar guardarlas en texto plano.
+
 
 
 
